@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.smbms.dao.UserDao">
+	<!-- 登录 -->
+	<select id="LoginUser" resultType="User">
+		SELECT * FROM smbms_user WHERE
+		userCode = #{UserCode} AND userPassword = #{UserPassword}
+	</select>
+	<!-- 分页查询 用户表 -->
+	<select id="getUserList" resultMap="userList">
+		select u.*,r.roleName,CEIL(DATEDIFF(NOW(),birthday)/365) AS age from
+		smbms_user u,smbms_role r
+		where u.userRole = r.id
+
+		<if test="userRole != null and userRole!= 0">
+			and u.userRole = #{userRole}
+		</if>
+		<if test="userName != null and userName!='' ">
+			and u.userName like CONCAT('%',#{userName},'%')
+		</if>
+		order by creationDate DESC limit #{from},#{pageSize}
+	</select>
+
+	<resultMap type="User" id="userList">
+		<result property="id" column="id" />
+		<result property="userCode" column="userCode" />
+		<result property="userName" column="userName" />
+		<result property="phone" column="phone" />
+		<result property="birthday" column="birthday" />
+		<result property="gender" column="gender" />
+		<result property="userRole" column="userRole" />
+		<result property="userRoleName" column="roleName" />
+		<result property="age" column="age" />
+	</resultMap>
+
+	<!--用户表 总记录 -->
+	<select id="getCount" resultType="int">
+		Select count(*) from smbms_user Where 1=1
+		<if test="userName!= null and userName!=''"> and userName like CONCAT('%',#{userName},'%')</if>
+		<if test="userRole!= null and userRole !=0"> and userRole = #{userRole}</if>
+	</select>
+
+	<!-- 用户表 添加 -->
+	<insert id="addUser" parameterType="User">
+		INSERT INTO
+		`smbms`.`smbms_user` (
+		`userCode`,
+		`userName`,
+		`userPassword`,
+		`gender`,
+		`birthday`,
+		`phone`,
+		`address`,
+		`userRole`,
+		`createdBy`,
+		`creationDate`,
+		idPicPath,
+		workPicPath
+		)
+		VALUES
+		( #{userCode},
+		#{userName},
+		#{userPassword},
+		#{gender},
+		#{birthday},
+		#{phone},
+		#{address},
+		#{userRole},
+		#{createdBy},
+		#{creationDate},
+		#{idPicPath},
+		#{workPicPath}
+		)
+	</insert>
+	<!-- 用户表 根据id查询 -->
+	<select id="ByIdUser" resultMap="userList2">
+		select * from smbms_user
+		u,smbms_role r
+		where u.userRole = r.id and u.id=
+		#{userId}
+	</select>
+
+	<resultMap type="User" id="userList2">
+		<result property="id" column="id" />
+		<result property="userCode" column="userCode" />
+		<result property="userName" column="userName" />
+		<result property="phone" column="phone" />
+		<result property="birthday" column="birthday" />
+		<result property="gender" column="gender" />
+		<result property="userRole" column="userRole" />
+		<result property="userRoleName" column="roleName" />
+		<result property="age" column="age" />
+	</resultMap>
+
+	<update id="updateUser" parameterType="User">
+		UPDATE smbms.smbms_user
+		<set>
+			<if test="userCode!= null">userCode = #{userCode} , </if>
+			<if test="userName!= null">userName = #{userName} ,  </if>
+			<if test="userPassword!= null">userPassword = #{userPassword} ,  </if>
+			<if test="gender!= null">gender = #{gender} ,  </if>
+			<if test="birthday!= null">birthday = #{birthday} ,  </if>
+			<if test="phone!= null">phone = #{phone} ,  </if>
+			<if test="address!= null">address = #{address},  </if>
+			<if test="userRole!= null">userRole = #{userRole} ,  </if>
+			<if test="createdBy!= null">createdBy = #{createdBy} , </if>
+			<if test="creationDate!= null">creationDate = #{creationDate} ,  </if>
+			<if test="modifyBy!= null">modifyBy = #{modifyBy} ,  </if>
+			<if test="modifyDate!= null">modifyDate = #{modifyDate}, </if>
+			<if test="idPicPath!= null">idPicPath = #{idPicPath}, </if>
+			<if test="workPicPath!= null">workPicPath = #{workPicPath} </if>
+
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+	<!-- 查询用户编码是否唯一 -->
+	<select id="selectUserCode" resultType="Integer">
+		Select count(*) from
+		smbms.smbms_user where userCode = #{userCode}
+	</select>
+	<!-- 修改密码 -->
+	<update id="updatePassword" parameterType="Integer">
+		UPDATE
+		smbms.smbms_user
+		SET
+
+		userPassword = #{userPassword}
+
+		WHERE
+		id = #{id}
+
+	</update>
+
+	<!-- 删除用户 -->
+	<delete id="delUser" parameterType="Integer">
+		DELETE FROM smbms.smbms_user
+		WHERE id = #{id}
+	</delete>
+
+	<!-- 分页查询 供应商表 -->
+	<select id="getProLimit" resultType="Provider">
+		SELECT * FROM smbms_provider where 1=1
+		<if test="proCode != null ">
+			and proCode like CONCAT('%',#{proCode},'%')
+		</if>
+		<if test="proName != null and proName!='' ">
+			and proName like CONCAT('%',#{proName},'%')
+		</if>
+		order by creationDate DESC limit #{from},#{pageSize}
+	</select>
+
+
+	<!--供应商表 总记录 -->
+	<select id="getProCount" resultType="Integer">
+		SELECT count(*)FROM smbms_provider where 1=1
+
+		<if test="proCode != null ">
+			and proCode like CONCAT('%',#{proCode},'%')
+		</if>
+		<if test="proName != null and proName!='' ">
+			and proName like CONCAT('%',#{proName},'%')
+		</if>
+
+	</select>
+
+	<!-- 供应商添加 -->
+	<insert id="Proadd" parameterType="Provider">
+		INSERT INTO smbms.smbms_provider
+		(
+		proCode,
+		proName,
+		proDesc,
+		proContact,
+		proPhone,
+		proAddress,
+		proFax,
+		createdBy,
+		creationDate,
+		businessPath,
+		organPath
+
+		)
+		VALUES
+		(
+		<if test="proCode!= null">#{proCode},</if>
+		<if test="proName!= null">#{proName},</if>
+		<if test="proDesc!= null">#{proDesc},</if>
+		<if test="proContact!= null">#{proContact},</if>
+		<if test="proPhone!= null">#{proPhone},</if>
+		<if test="proAddress!= null">#{proAddress},</if>
+		<if test="proFax!= null">#{proFax},</if>
+		<if test="createdBy!= null">#{createdBy},</if>
+		<if test="creationDate!= null">#{creationDate},</if>
+		<if test="businessPath!= null">#{businessPath},</if>
+		<if test="organPath!= null">#{organPath}</if>
+		);
+	</insert>
+
+	<!-- 供应商表 根据id查询 -->
+	<select id="ByIdPro" resultType="Provider">
+		Select * from
+		smbms.smbms_provider where id = #{proId}
+	</select>
+
+	<select id="getProName" resultType="Provider">
+		Select * from
+		smbms.smbms_provider
+	</select>
+	<!-- 供应商表 根据id修改 -->
+	<update id="Proupdate" parameterType="Provider">
+		UPDATE smbms.smbms_provider
+		<set>
+
+			<if test="proCode!= null">proCode = #{proCode} , </if>
+			<if test="proName!= null">proName = #{proName} , </if>
+			<if test="proDesc!= null">proDesc = #{proDesc} , </if>
+			<if test="proContact!= null">proContact = #{proContact} , </if>
+			<if test="proPhone!= null">proPhone = #{proPhone} , </if>
+			<if test="proAddress!= null">proAddress = #{proAddress} , </if>
+			<if test="proFax!= null">proFax = #{proFax} , </if>
+			<if test="createdBy!= null">createdBy = #{createdBy} , </if>
+			<if test="creationDate!= null">creationDate = #{creationDate} , </if>
+			<if test="modifyDate!= null">modifyDate = #{modifyDate} , </if>
+			<if test="modifyBy!= null">modifyBy = #{modifyBy},</if>
+			<if test="businessPath!= null">modifyBy = #{businessPath}</if>
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+	<!-- 删除 -->
+	<delete id="delProVider" parameterType="Integer">
+		DELETE FROM
+		smbms.smbms_provider WHERE id = #{id}
+	</delete>
+	<!-- 查询供应商下的订单信息 -->
+	<select id="getBillPro" resultType="Integer">
+
+		SELECT COUNT(*) FROM smbms_bill b,smbms_provider p
+		WHERE b.providerId= p.id AND b.providerId =#{id}
+
+	</select>
+	<!-- 角色表 分页查询 -->
+	<select id="getRoleList" resultType="Role">
+		select * from smbms_role
+		order by creationDate DESC limit #{from},#{pageSize}
+
+	</select>
+
+	<!-- 查询角色信息 -->
+	<select id="getRoleCount" resultType="Integer">
+		select count(*) from
+		smbms_role
+	</select>
+
+	<!-- 显示角色 -->
+	<select id="getRole" resultType="Role">
+		select * from smbms_role
+	</select>
+	<!-- 根据id显示角色 -->
+	<select id="RoleById" resultType="Role">
+		select * from smbms_role where
+		id = #{id}
+	</select>
+   <!-- 修改角色信息 -->
+	<update id="updateRole" parameterType="Role">
+		UPDATE smbms.smbms_role
+		<set>
+			<if test="roleCode!= null">roleCode = #{roleCode} ,</if>
+			<if test="roleName!= null">roleName = #{roleName} , </if>
+			<if test="createdBy!= null">createdBy = #{createdBy} , </if>
+			<if test="creationDate!= null">creationDate = #{creationDate} , </if>
+			<if test="modifyBy!= null">modifyBy = #{modifyBy} , </if>
+			<if test="modifyDate!= null">modifyDate = #{modifyDate}</if>
+		</set>
+		WHERE
+		id = #{id}
+	</update>
+	<!-- 查询用户编码是否存在 -->
+	<select id="RoleByCode" resultType="Integer">
+		select count(*) from smbms_role where roleCode = #{roleCode}
+	</select>
+
+	<!-- 查询角色下面的用户数量 -->
+	<select id="RoleByUser" resultType="Integer"> 
+	SELECT count(*) FROM smbms_user u ,smbms_role r WHERE u.userRole = r.id
+	AND u.userRole = #{id}
+	</select>
+	<delete id="delRole" parameterType="Integer">
+		DELETE FROM smbms.smbms_role 
+		WHERE
+	id = #{id}
+	</delete> 
+	<!-- 添加 -->
+	<insert id="RoleAdd" parameterType="Integer">
+	INSERT INTO smbms.smbms_role 
+	(
+		roleCode, 
+		roleName, 
+		createdBy, 
+		creationDate 
+	
+	)
+	VALUES
+	( 
+	#{roleCode}, 
+	#{roleName}, 
+	#{createdBy}, 
+	#{creationDate}
+	
+	)
+	
+	</insert>
+	<!-- 订单表 -->
+	<select id="getBillLimit" resultMap="getBill">
+		SELECT b.*,p.* FROM smbms_bill b,smbms_provider p WHERE b.providerId =
+		p.id
+		<if test="productName!= null and productName!= ''">AND productName like CONCAT('%',#{productName},'%')</if>
+		<if test="providerId!= null and providerId!= 0">AND providerId = #{providerId}</if>
+		<if test="isPayment!= null and isPayment != 0">AND isPayment = #{isPayment}</if>
+		limit #{form},#{pageSize}
+	</select>
+	<resultMap type="Bill" id="getBill">
+		<result property="billCode" column="billCode" />
+		<result property="productName" column="productName" />
+		<result property="productDesc" column="productDesc" />
+		<result property="productUnit" column="productUnit" />
+		<result property="productCount" column="productCount" />
+		<result property="totalPrice" column="totalPrice" />
+		<result property="isPayment" column="isPayment" />
+		<result property="createdBy" column="createdBy" />
+		<result property="creationDate" column="creationDate" />
+		<result property="modifyBy" column="modifyBy" />
+		<result property="modifyDate" column="modifyDate" />
+		<result property="providerId" column="providerId" />
+		<result property="providerName" column="proName" />
+		<result property="businessPath" column="businessPath" />
+		<result property="organPath" column="organPath" />
+	</resultMap>
+
+	<!-- 求和 -->
+	<select id="getBillCount" resultType="Integer">
+		SELECT COUNT(*) FROM smbms_bill where 1=1
+		<if test="productName!= null and productName!= ''">AND productName like CONCAT('%',#{productName},'%')</if>
+		<if test="providerId!= null and providerId != 0 ">AND providerId = #{providerId}</if>
+		<if test="isPayment!= null and isPayment!=0 ">AND isPayment = #{isPayment}</if>
+	</select>
+	<!-- 添加 -->
+	<insert id="addBill" parameterType="Bill">
+		INSERT INTO smbms.smbms_bill
+		(
+		billCode,
+		productName,
+		productUnit,
+		productCount,
+		totalPrice,
+		isPayment,
+		createdBy,
+		creationDate,
+		providerId
+		)
+		VALUES
+		(
+		<if test="billCode!= null">#{billCode}, </if>
+		<if test="productName!= null">#{productName}, </if>
+		<if test="productUnit!= null">#{productUnit}, </if>
+		<if test="productCount!= null">#{productCount},</if>
+		<if test="totalPrice!= null">#{totalPrice}, </if>
+		<if test="isPayment!= null">#{isPayment}, </if>
+		<if test="createdBy!= null">#{createdBy}, </if>
+		<if test="creationDate!= null">#{creationDate}, </if>
+		<if test="providerId!= null">#{providerId}</if>
+		)
+
+	</insert>
+	<!-- 根据id查询 -->
+	<select id="getByBillId" resultMap="Bills">
+		SELECT b.*,p.* FROM
+		smbms_bill b,smbms_provider p WHERE b.providerId = p.id
+		and b.id=#{Id}
+	</select>
+
+	<resultMap type="Bill" id="Bills">
+		<result property="billCode" column="billCode" />
+		<result property="productName" column="productName" />
+		<result property="productDesc" column="productDesc" />
+		<result property="productUnit" column="productUnit" />
+		<result property="productCount" column="productCount" />
+		<result property="totalPrice" column="totalPrice" />
+		<result property="isPayment" column="isPayment" />
+		<result property="createdBy" column="createdBy" />
+		<result property="creationDate" column="creationDate" />
+		<result property="modifyBy" column="modifyBy" />
+		<result property="modifyDate" column="modifyDate" />
+		<result property="providerId" column="providerId" />
+		<result property="providerName" column="proName" />
+		<result property="businessPath" column="businessPath" />
+		<result property="organPath" column="organPath" />
+	</resultMap>
+
+	<!-- 修改 -->
+	<insert id="updateBill" parameterType="Bill">
+		UPDATE smbms.smbms_bill
+		<set>
+		<if test="billCode!= null">billCode=#{billCode}, </if>
+		<if test="productName!= null">productName=#{productName}, </if>
+		<if test="productUnit!= null">productUnit=#{productUnit}, </if>
+		<if test="productCount!= null">productCount=#{productCount},</if>
+		<if test="totalPrice!= null">totalPrice=#{totalPrice}, </if>
+		<if test="isPayment!= null">isPayment=#{isPayment}, </if>
+		<if test="modifyBy!= null">modifyBy=#{modifyBy}, </if>
+		<if test="modifyDate != null">modifyDate = #{modifyDate},</if>
+		<if test="providerId!= null">providerId=#{providerId}</if>
+		</set>
+		WHERE
+		id = #{id}
+	</insert>
+	<!-- 删除 -->
+	<delete id="delBill" parameterType="Integer">
+		DELETE FROM smbms.smbms_bill
+		WHERE
+		id = #{id}
+	</delete>
+</mapper>
